@@ -1,1 +1,1 @@
-# messageing_app
+# messaging_app
