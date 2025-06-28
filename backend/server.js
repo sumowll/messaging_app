@@ -1,69 +1,81 @@
-require('dotenv').config(); // at the top of your server.js
+require('dotenv').config();
+
+
+// server.js (Backend)
 const express = require("express");
-const bcrypt = require("bcrypt");
-const { v4: uuidv4 } = require("uuid");
-const { PutCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
-const client = require("./dynamoClient");
-const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
-
-
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, UpdateCommand, QueryCommand, PutCommand } = require("@aws-sdk/lib-dynamodb");
 
 const app = express();
-app.use(express.json());
+app.use(cors());
+app.use(bodyParser.json());
 
-const ddb = DynamoDBDocumentClient.from(client);
-const TABLE_NAME = "messaging-users"; // Ensure this table exists in your DynamoDB
+const TABLE_NAME = "messaging-users"; // Change this if needed
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
 
+// 1. Register user
 app.post("/register", async (req, res) => {
-  console.log("📥 Register request:", req.body); // Add this log for debugging
-  const { name, email, password } = req.body;
-
+  const { email, name } = req.body;
+  if (!email || !name) return res.status(400).json({ error: "Email and name required" });
   try {
-    // Check if user exists
-    const existing = await ddb.send(new GetCommand({
-      TableName: TABLE_NAME,
-      Key: { email }
-    }));
-
-    if (existing.Item) {
-      return res.status(409).json({ error: "User already exists" });
-    }
-
-    const hashed = await bcrypt.hash(password, 10);
-    const user_id = uuidv4();
-
     await ddb.send(new PutCommand({
       TableName: TABLE_NAME,
-      Item: {
-        user_id,
-        name,
-        email,
-        password_hash: hashed,
-        created_at: new Date().toISOString()
-      }
+      Item: { email, name, friends: [] }
     }));
-
-    res.status(201).json({ message: "User created", user_id });
-
+    res.json({ message: "User registered" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: "Registration failed" });
   }
 });
 
-app.get("/user/:email(*)", async (req, res) => {
-
-  const { email } = req.params;
+// 2. Search users by name
+app.get("/search", async (req, res) => {
+  const { name } = req.query;
+  if (!name) return res.status(400).json({ error: "Name required" });
   try {
-    const user = await ddb.send(new GetCommand({
+    const result = await ddb.send(new QueryCommand({
       TableName: TABLE_NAME,
-      Key: { email }
+      IndexName: "name-index",
+      KeyConditionExpression: "#nm = :n",
+      ExpressionAttributeNames: { "#nm": "name" },
+      ExpressionAttributeValues: { ":n": name }
     }));
-    res.json(user.Item || { message: "User not found" });
+    res.json(result.Items);
   } catch (err) {
-    res.status(500).json({ error: "Error fetching user" });
+    console.error(err);
+    res.status(500).json({ error: "Search failed" });
   }
 });
 
+// 3. Add friend (reciprocal)
+app.post("/add-friend", async (req, res) => {
+  const { userEmail, friendEmail } = req.body;
+  if (!userEmail || !friendEmail || userEmail === friendEmail)
+    return res.status(400).json({ error: "Invalid emails" });
+  try {
+    const updateA = ddb.send(new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { email: userEmail },
+      UpdateExpression: "ADD friends :f",
+      ExpressionAttributeValues: { ":f": ddb.createSet([friendEmail]) }
+    }));
 
-app.listen(3001, () => console.log("Backend running on http://localhost:3001"));
+    const updateB = ddb.send(new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { email: friendEmail },
+      UpdateExpression: "ADD friends :f",
+      ExpressionAttributeValues: { ":f": ddb.createSet([userEmail]) }
+    }));
+
+    await Promise.all([updateA, updateB]);
+    res.json({ message: "Friendship established" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Friendship failed" });
+  }
+});
+
+app.listen(3000, () => console.log("Server running on port 3000"));
