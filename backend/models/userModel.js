@@ -15,7 +15,7 @@ async function findUsersByName(name) {
   });
 
   const result = await ddb.send(command);
-  console.log("Scan result:", result); // Debugging line
+  // console.log("Scan result:", result); // Debugging line
   return result.Items;
 }
 
