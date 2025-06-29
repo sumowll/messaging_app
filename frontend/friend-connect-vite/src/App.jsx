@@ -18,7 +18,7 @@ function App() {
   // Handle Register
   const handleRegister = async (e) => {
     e.preventDefault();
-    const res = await fetch("http://localhost:3000/register", {
+    const res = await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -42,7 +42,7 @@ function App() {
   }
 
   try {
-    const res = await fetch("http://localhost:3000/login", {
+    const res = await fetch("http://localhost:3000/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: form.email, password: form.password }),
@@ -63,14 +63,14 @@ function App() {
 
   // Friend search
   const handleSearch = async () => {
-    const res = await fetch(`http://localhost:3000/search?name=${encodeURIComponent(searchName)}`);
+    const res = await fetch(`http://localhost:3000/api/users/search?name=${encodeURIComponent(searchName)}`);
     const data = await res.json();
     if (res.ok) setResults(data.filter(user => user.email !== loggedInEmail));
     else setFriendMessage(`Search error: ${data.error}`);
   };
 
   const handleConnect = async (friendEmail) => {
-    const res = await fetch("http://localhost:3000/add-friend", {
+    const res = await fetch("http://localhost:3000/api/users/add-friend", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userEmail: loggedInEmail, friendEmail }),
