@@ -1,6 +1,6 @@
 const { createMessage, fetchMessages } = require("../models/messageModel");
 
-exports.sendMessage = async (req, res) => {
+const sendMessage = async (req, res) => {
   const { to, text } = req.body;
   const from = req.body.from || req.user?.email;
 
@@ -17,7 +17,7 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-exports.getMessages = async (req, res) => {
+const getMessages = async (req, res) => {
   const userEmail = req.user?.email || req.query.from;
   const friendEmail = req.query.with;
 
@@ -32,4 +32,9 @@ exports.getMessages = async (req, res) => {
     console.error("Fetch messages error:", err);
     res.status(500).json({ error: "Failed to fetch messages" });
   }
+};
+
+module.exports = {
+  sendMessage,
+  getMessages
 };
