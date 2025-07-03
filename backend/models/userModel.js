@@ -73,8 +73,9 @@ async function addFriendPair(userEmail, friendEmail) {
   return { message: "Friendship established" };
 }
 
-module.exports = { addFriendPair };
-
-
+// Export functions for use in routes
+// This allows us to use these functions in our route handlers
+// e.g., in userRoutes.js we can import these functions to handle requests
+// const { addFriendPair, findUsersByName, findUserByEmail } = require("../models/userModel");    
 
 module.exports = { addFriendPair, findUsersByName, findUserByEmail };

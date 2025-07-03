@@ -1,9 +1,8 @@
 
 const API = "http://localhost:3000/api";
 
-
 export async function getMessages(from: string, to: string): Promise<any> {
-  const res = await fetch(`${API}/messages?with=${encodeURIComponent(to)}`);
+  const res = await fetch(`${API}/messages?from=${encodeURIComponent(from)}&with=${encodeURIComponent(to)}`);
   return res.json();
 }
 
