@@ -6,8 +6,16 @@ exports.searchUsers = async (req, res) => {
   if (!name) return res.status(400).json({ error: "Name is required" });
 
   try {
+    // Extract only name and email from each user
     const users = await findUsersByName(name);
-    res.json(users);
+
+    // Extract only name and email from each user
+    const simplifiedUsers = users.map(user => ({
+      name: user.name,
+      email: user.email
+    }));
+
+    res.json(simplifiedUsers);
   } catch (err) {
     console.error("Search error:", err);
     res.status(500).json({ error: "Failed to search users" });

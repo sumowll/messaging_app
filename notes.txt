@@ -1,0 +1,6 @@
+The expression !searchTerm.trim() means:
+
+    "Is the search term empty or just whitespace?"
+
+
+    
