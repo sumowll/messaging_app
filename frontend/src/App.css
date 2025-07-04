@@ -1,42 +1,116 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: #fff;
+}
+
+.auth-container {
   padding: 2rem;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.auth-container button {
+  margin: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background-color: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.sidebar {
+  width: 280px;
+  background-color: #1e1e1e;
+  padding: 1rem;
+  border-right: 1px solid #333;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
-.card {
-  padding: 2em;
+.logout-button {
+  display: block;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem;
+  background-color: #444;
+  border: none;
+  color: white;
+  cursor: pointer;
+  width: 100%;
 }
 
-.read-the-docs {
+.search-input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  background-color: #2a2a2a;
+  border: none;
+  color: white;
+}
+
+.contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.contact-item {
+  background-color: #2b2b2b;
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  word-break: break-word;
+  overflow: hidden;
+}
+
+.contact-item div {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contact-item div:hover {
+  white-space: normal;
+}
+
+.chat-button {
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background-color: #3a3a3a;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.chat-button:hover {
+  background-color: #555;
+}
+
+.chat-area {
+  flex-grow: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  background-color: #181818;
+  display: flex;
+  flex-direction: column;
+}
+
+.placeholder-text {
   color: #888;
+  font-style: italic;
+  margin-top: 2rem;
+}
+
+.chatbox-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }

@@ -1,19 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function FriendSearch({ loggedInEmail, onChatStart }) {
   const [searchName, setSearchName] = useState("");
   const [results, setResults] = useState([]);
   const [friendMessage, setFriendMessage] = useState("");
 
-  const handleSearch = async () => {
-    const res = await fetch(`http://localhost:3000/api/users/search?name=${encodeURIComponent(searchName)}`);
-    const data = await res.json();
-    if (res.ok) {
-      setResults(data.filter(user => user.email !== loggedInEmail));
-    } else {
-      setFriendMessage(`Search error: ${data.error}`);
-    }
-  };
+  useEffect(() => {
+    if (!searchName.trim()) return;
+
+    const timeout = setTimeout(() => {
+      fetch(`http://localhost:3000/api/users/search?name=${encodeURIComponent(searchName)}`)
+        .then(res => res.json())
+        .then(data => setResults(data.filter(user => user.email !== loggedInEmail)))
+        .catch(err => setFriendMessage("Search failed."));
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [searchName, loggedInEmail]);
 
   const handleConnect = async (friendEmail) => {
     const res = await fetch("http://localhost:3000/api/users/add-friend", {
@@ -34,7 +37,6 @@ function FriendSearch({ loggedInEmail, onChatStart }) {
         value={searchName}
         onChange={(e) => setSearchName(e.target.value)}
       />
-      <button onClick={handleSearch}>Search</button>
       <ul>
         {results.map((user) => (
           <li key={user.email}>
@@ -48,5 +50,4 @@ function FriendSearch({ loggedInEmail, onChatStart }) {
     </div>
   );
 }
-
 export default FriendSearch;
