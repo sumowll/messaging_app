@@ -1,4 +1,4 @@
-const { createMessage, fetchMessages } = require("../models/messageModel");
+const { createMessage, fetchMessages, countUnread, markMessagesAsReadInDB } = require("../models/messageModel");
 
 const sendMessage = async (req, res) => {
   const { to, text } = req.body;
@@ -34,7 +34,42 @@ const getMessages = async (req, res) => {
   }
 };
 
+const getCountUnread = async (req, res) => {
+  const userEmail = req.user?.email || req.query.user;
+
+  if (!userEmail) {
+    return res.status(400).json({ error: "Missing 'user' context" });
+  }
+
+  try {
+    const unreadCount = await countUnread(userEmail);
+    res.json(unreadCount); // ✅ returns the full object
+
+  } catch (err) {
+    console.error("Count unread messages error:", err);
+    res.status(500).json({ error: "Failed to count unread messages" });
+  }
+};
+
+const markMessagesAsRead = async (req, res) => {
+  const { from, to } = req.body;
+  if (!from || !to) {
+    return res.status(400).json({ error: "Missing 'from' or 'to'" });
+  }
+
+  try {
+    const updatedCount = await markMessagesAsReadInDB(from, to);
+    res.status(200).json({ updated: updatedCount });
+  } catch (err) {
+    console.error("Failed to mark messages as read:", err);
+    res.status(500).json({ error: "Failed to update messages" });
+  }
+};
+
+
 module.exports = {
   sendMessage,
-  getMessages
+  getMessages,
+  getCountUnread,
+  markMessagesAsRead
 };

@@ -1,0 +1,355 @@
+html, body, #root, .app-container {
+  height: 100%;
+  margin: 0;
+}
+
+.chatbox-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0.5rem;
+  overflow: hidden;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.chatbox-header {
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: left;
+  color: #fff;
+}
+
+.chatbox-friend-name {
+  color: #4a90e2;
+}
+
+
+.chatbox-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  background-color: #121212;
+  border: 1px solid #222;
+  border-radius: 16px;
+}
+
+.chatbox-message-wrapper {
+  display: flex;
+  margin: 0.2rem 0;
+}
+
+.chatbox-message-wrapper.align-left {
+  justify-content: flex-start;
+}
+
+.chatbox-message-wrapper.align-right {
+  justify-content: flex-end;
+}
+
+.chatbox-message {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+  margin: 4px 0;
+  position: relative;
+}
+
+.chatbox-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 1rem;
+  max-width: 60%;
+  word-break: break-word;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  position: relative;
+}
+
+.sent .chatbox-bubble {
+  background-color: #bcbcbc;
+  color: black;
+  justify-content: flex-end;
+}
+
+.received .chatbox-bubble {
+  background-color: #4a90e2;
+  color: white;
+  justify-content: flex-start;
+}
+
+.chatbox-sender-name {
+  font-weight: 600;
+  font-size: 0.8rem;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.chatbox-text {
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
+.chatbox-hover-time {
+  position: absolute;
+  bottom: -18px;
+  right: 8px;
+  font-size: 0.7rem;
+  color: #bbb;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.chatbox-bubble:hover .chatbox-hover-time,
+.chatbox-bubble:focus-within .chatbox-hover-time {
+  opacity: 1;
+}
+
+.chatbox-time-divider {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #888;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.chatbox-input-area {
+  padding: 1rem; /* increase vertical padding */
+  display: flex;
+  align-items: center;
+  background-color: #1f1f1f;
+  border-top: 1px solid #333;
+}
+
+
+
+.chatbox-input {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: #2a2a2a;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  outline: none;
+}
+
+.chatbox-input::placeholder {
+  color: #888;
+}
+
+.chatbox-input-area input[type="text"] {
+  height: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  flex: 1;
+  border-radius: 8px;
+  background-color: #2b2b2b;
+  border: none;
+  color: white;
+}
+.chatbox-input-area {
+  display: flex;
+  padding: 0.75rem;
+  background-color: #1f1f1f;
+  border-top: 1px solid #333;
+  align-items: flex-end; /* align textarea to bottom */
+  gap: 0.5rem;
+}
+
+.chatbox-textarea {
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 12px;
+  font-size: 16px;
+  line-height: 1.4;
+  max-height: 200px; /* optional: stop growing after 6–8 lines */
+  background-color: #1e1e1e;
+  color: #fff;
+  border: none;
+  transition: height 0.1s ease;
+}
+
+
+
+
+
+.chatbox-send {
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  background-color: #5c85d6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.chatbox-send:hover {
+  background-color: #4a74c0;
+}
+
+.chatbox-messages::-webkit-scrollbar {
+  width: 15px;
+}
+
+.chatbox-messages::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 3px;
+}
+
+.chatbox-message-wrapper.align-left {
+  justify-content: flex-start;
+}
+
+.chatbox-message-wrapper.align-right {
+  justify-content: flex-end;
+}
+
+.chatbox-bubble {
+  background-color: var(--bubble-color); /* blue or grey */
+  border-radius: 15px;
+  padding: 8px 12px;
+  color: #fff;
+  max-width: 70%;  /* Allow long messages */
+  min-width: 60px;
+  word-wrap: break-word;
+  display: inline-block;
+}
+
+.chatbox-message-wrapper {
+  display: flex;
+  justify-content: flex-start; /* will override per message */
+  margin: 6px 12px;
+  width: 100%;
+}
+
+.chatbox-message.sent {
+  justify-content: flex-end;
+}
+
+.chatbox-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 70%;
+}
+
+.chatbox-message.sent {
+  align-items: flex-end;
+}
+
+.chatbox-bubble {
+  background-color: var(--bubble-bg); /* use your silver/blue shades */
+  border-radius: 18px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-color);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+  position: relative;
+}
+
+/* Example colors */
+:root {
+  --bubble-bg-sent: #bbb;     /* light grey */
+  --bubble-bg-received: #4a90e2; /* light blue */
+  --text-color: #fff;
+}
+
+.chatbox-message.sent .chatbox-bubble {
+  background-color: var(--bubble-bg-sent);
+  color: #000; /* adjust if needed */
+}
+
+.chatbox-message.received .chatbox-bubble {
+  background-color: var(--bubble-bg-received);
+}
+
+.chatbox-timestamp {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-align: right;
+}
+
+.chatbox-bubble:hover .chatbox-timestamp {
+  opacity: 1;
+}
+
+.chatbox-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #bbb;
+  margin-bottom: 2px;
+}
+
+
+.chatbox-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 8px 16px;
+  max-width: 60%;
+}
+
+.chatbox-message.sent {
+  align-items: flex-end;
+  margin-left: auto;
+  margin-right: 16px;
+}
+
+.chatbox-bubble {
+  background-color: #3b82f6; /* received */
+  color: white;
+  padding: 10px 14px;
+  border-radius: 16px;
+  word-wrap: break-word;
+  max-width: 100%;
+  position: relative;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
+}
+
+.chatbox-message.sent .chatbox-bubble {
+  background-color: #bdbdbd; /* sent */
+  color: black;
+}
+
+.chatbox-sender {
+  font-size: 0.75rem;
+  color: #cccccc;
+  margin-bottom: 2px;
+  padding-left: 4px;
+}
+
+/* .chatbox-message.sent .chatbox-sender {
+  display: none;
+} */
+
+.chatbox-hover-time {
+  position: absolute;
+  bottom: -18px;
+  font-size: 0.7rem;
+  opacity: 0;
+  color: #888;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.chatbox-message:hover .chatbox-hover-time {
+  opacity: 1;
+  left: 8px;
+}
