@@ -1,5 +1,5 @@
 // controllers/userController.js
-const { findUsersByName } = require("../models/userModel");
+const { findUsersByName, addFriendPair, getUserContacts } = require("../models/userModel");
 
 exports.searchUsers = async (req, res) => {
   const { name } = req.query;
@@ -22,8 +22,22 @@ exports.searchUsers = async (req, res) => {
   }
 };
 
+exports.getContacts = async(req, res) => {
+  const { email } = req.query;
 
-const { addFriendPair } = require("../models/userModel");
+  if (!email) {
+    return res.status(400).json({ error: "Missing 'email' query parameter." });
+  }
+
+  try {
+    const contacts = await getUserContacts(email);
+    return res.status(200).json(contacts);
+  } catch (error) {
+    console.error(`Error fetching contacts for ${email}:`, error);
+    return res.status(500).json({ error: "Failed to fetch contacts." });
+  }
+};
+
 
 exports.addFriend = async (req, res) => {
   const { userEmail, friendEmail } = req.body;

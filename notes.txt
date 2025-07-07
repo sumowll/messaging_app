@@ -1,6 +1,11 @@
-The expression !searchTerm.trim() means:
+### Login for user
 
-    "Is the search term empty or just whitespace?"
+scmowll@gmail.com ----- R95Oy%
+tylermowll@gmail.com ----- @1xb*P*s
+
+#### technical notes
+
+The expression !searchTerm.trim() means: "Is the search term empty or just whitespace?"
 
 
-    
+!!! Need to get rid of "ScanCommand" used anywhere in the application, it is not scalable.
