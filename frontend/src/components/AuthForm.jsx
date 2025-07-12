@@ -9,6 +9,7 @@ function AuthForm({ mode, setMode, onLogin }) {
   };
 
   const handleSubmit = async (e) => {
+    console.log("Submitting form:", form);
     e.preventDefault();
 
     if (mode === "login" && (!form.email || !form.password)) {

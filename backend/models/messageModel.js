@@ -1,9 +1,10 @@
 const { v4: uuidv4 } = require("uuid");
-const { QueryCommand, PutCommand, TransactWriteItemsCommand } = require("@aws-sdk/lib-dynamodb");
+// const { TransactWriteItemsCommand } = require("@aws-sdk/client-dynamodb");
+const { QueryCommand, PutCommand, DynamoDBDocumentClient, TransactWriteCommand} = require("@aws-sdk/lib-dynamodb");
 const ddb = require("../config/db");
 const { TABLES } = require("../config/constants");
 const TABLE_NAME = TABLES.MESSAGES;
-const GSI_NAME = "conversation_index";
+
 
 function getConversationId(a, b) {
   return [a, b].sort().join("|");
@@ -25,7 +26,7 @@ const createMessage = async ({ from, to, text }) => {
     to,                         // string
     text,                       // string
     timestamp,                  // string (ISO timestamp)
-    read: new Uint8Array([0])  // equivalent to false/unread
+    read: 0 // equivalent to false/unread
   };
 
   try {
@@ -78,10 +79,9 @@ const countUnread = async (userEmail) => {
     },
     ExpressionAttributeValues: {
       ':to': userEmail,
-      ':read': new Uint8Array([0])  // or Buffer.from([0])
+      ':read': 0
     }
   };
-
 
   try {
     const data = await ddb.send(new QueryCommand(params));
@@ -100,13 +100,17 @@ const countUnread = async (userEmail) => {
 };
 
 
+const docClient = DynamoDBDocumentClient.from(ddb);
+
 const markMessagesAsReadInDB = async (from, to) => {
+  console.log(`[DEBUG] markMessagesAsReadInDB called with from=${from}, to=${to}`);
+
   const conversationId = getConversationId(from, to);
 
   const queryParams = {
     TableName: TABLE_NAME,
     KeyConditionExpression: 'conversation_id = :cid',
-    FilterExpression: '#from = :from AND #to = :to AND #read = :unread',
+    FilterExpression: '#from = :from AND #to = :to AND #read = :read',
     ExpressionAttributeNames: {
       '#from': 'from',
       '#to': 'to',
@@ -116,12 +120,13 @@ const markMessagesAsReadInDB = async (from, to) => {
       ':cid': conversationId,
       ':from': from,
       ':to': to,
-      ':unread': new Uint8Array([0])
+      ':read': 0   // ✅ Unread messages only
     }
   };
 
-  const result = await ddb.send(new QueryCommand(queryParams));
+  const result = await docClient.send(new QueryCommand(queryParams));
   const messages = result.Items || [];
+  console.log(`[DEBUG] Found ${messages.length} unread messages for conversation ${conversationId}`);
 
   if (messages.length === 0) return 0;
 
@@ -130,22 +135,23 @@ const markMessagesAsReadInDB = async (from, to) => {
       TableName: TABLE_NAME,
       Key: {
         conversation_id: msg.conversation_id,
-        message_id: msg.message_id
+        timestamp: msg.timestamp
       },
       UpdateExpression: 'SET #read = :read',
       ExpressionAttributeNames: { '#read': 'read' },
-      ExpressionAttributeValues: { ':read': new Uint8Array([1]) }
+      ExpressionAttributeValues: { ':read': 1 }  // ✅ Mark as read
     }
   }));
+  console.log(`[DEBUG] Preparing to mark ${updates.length} messages as read for conversation ${conversationId}`);
 
-  const batchWriteParams = { TransactItems: updates.slice(0, 25) }; // DynamoDB max is 25
-  await ddb.send(new TransactWriteItemsCommand(batchWriteParams));
-  console.log(`Marked ${updates.length} messages as read for conversation ${conversationId}`);
+  // DynamoDB max 25 operations per transaction
+  await docClient.send(new TransactWriteCommand({
+    TransactItems: updates.slice(0, 25)
+  }));
 
+  console.log(`✅ Marked ${updates.length} messages as read for conversation ${conversationId}`);
   return updates.length;
 };
-
-
 
 
 module.exports = {

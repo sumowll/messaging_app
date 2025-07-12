@@ -3,13 +3,17 @@ import { sendMessage, getMessages } from "@api";
 import socket from "../services/socket";
 import "../styles/ChatBox.css";
 
-function ChatBox({ loggedInEmail, friendEmail, friendName }) {
+function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
 
   const loggedInEmailRef = useRef(loggedInEmail);
   const friendEmailRef = useRef(friendEmail);
+
+  function getRoomId(email1, email2) {
+  return [email1, email2].sort().join("-");
+  } 
 
   useEffect(() => {
     loggedInEmailRef.current = loggedInEmail;
@@ -34,11 +38,11 @@ function ChatBox({ loggedInEmail, friendEmail, friendName }) {
     if (!text.trim()) return;
 
     const newMessage = {
-      roomId: getRoomId(loggedInEmail, friendEmail),
-      sender: loggedInEmail,
+      // conversationID: getRoomId(loggedInEmail, friendEmail), // should be created on the backend
+      from: loggedInEmail,
       to: friendEmail,
       text,
-      timestamp: Date.now(),
+      // timestamp: Date.now(), // timestamp will be set by the backend
     };
 
     setMessages((prev) => [
@@ -47,7 +51,7 @@ function ChatBox({ loggedInEmail, friendEmail, friendName }) {
     ]);
 
     socket.emit("send_message", newMessage);
-    await sendMessage(loggedInEmail, friendEmail, text);
+    // await sendMessage(loggedInEmail, friendEmail, text); // not using API call anymore, handled by socket
     setText("");
   };
 
@@ -57,17 +61,10 @@ function ChatBox({ loggedInEmail, friendEmail, friendName }) {
       handleSend();
     }
   };
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
+  
   useEffect(() => {
     const handleReceive = (message) => {
-      const currentRoom = getRoomId(
-        loggedInEmailRef.current,
-        friendEmailRef.current
-      );
+      const currentRoom = getRoomId(loggedInEmailRef.current, friendEmailRef.current);
       if (message.roomId !== currentRoom) return;
 
       setMessages((prev) => {
@@ -77,9 +74,7 @@ function ChatBox({ loggedInEmail, friendEmail, friendName }) {
             m.text === message.text &&
             m.from === message.sender
         );
-        return exists
-          ? prev
-          : [...prev, { ...message, from: message.sender }];
+        return exists ? prev : [...prev, { ...message, from: message.sender }];
       });
     };
 
@@ -87,11 +82,24 @@ function ChatBox({ loggedInEmail, friendEmail, friendName }) {
     return () => socket.off("receive_message", handleReceive);
   }, []);
 
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   useEffect(() => {
     if (!friendEmail) return;
     const roomId = getRoomId(loggedInEmail, friendEmail);
     socket.emit("join", roomId);
     loadMessages();
+
+    // socket.emit("mark_as_read", { roomId, userEmail: loggedInEmail });
+
+    setUnreadCounts((prev) => {
+      const updated = { ...prev };
+      delete updated[friendEmail];
+      return updated;
+    });
   }, [friendEmail, loggedInEmail]);
 
   useEffect(() => {
@@ -152,10 +160,6 @@ function ChatBox({ loggedInEmail, friendEmail, friendName }) {
       </div>
     </div>
   );
-}
-
-function getRoomId(email1, email2) {
-  return [email1, email2].sort().join("-");
-}
+};
 
 export default ChatBox;

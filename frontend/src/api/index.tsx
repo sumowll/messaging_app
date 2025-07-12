@@ -58,23 +58,26 @@ export async function getUnreadCounts(userEmail: string): Promise<Record<string,
   return res.json();  
 }
 
-export const markMessagesAsRead = async (from: string, to: string): Promise<void> => {
-  try {
-    const res = await fetch('/api/messages/mark-read', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to })
-    });
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Unknown error');
-    }
-  } catch (err) {
-    console.error("Failed to mark messages as read:", err);
-    throw err;
+export async function markMessagesAsRead(from: string, to: string): Promise<any> {
+  console.log(JSON.stringify({ from, to }));
+
+  const response = await fetch(`${API}/messages/mark-read`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from, to })
+  });
+
+
+  if (!response.ok) {
+    console.error("Failed to mark messages as read");
+    return;
   }
-};
+
+  const result = await response.json();
+  console.log("Marked as read:", result);
+}
+
 
 
 

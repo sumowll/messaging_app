@@ -9,3 +9,7 @@ The expression !searchTerm.trim() means: "Is the search term empty or just white
 
 
 !!! Need to get rid of "ScanCommand" used anywhere in the application, it is not scalable.
+
+!!! One important lesson learned is that need to be careful and thoughtful when designing backend database, what fileds we need and what types they should be. There could be unnecessary troubles ahead if not set up right. Also there are different level of SDK to interact with cloud. Use the approriate level for your need.
+
+!!! Powerful search in bash script "grep -rin --exclude-dir={node_modules,dist} "socket.on" .”
