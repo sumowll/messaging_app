@@ -10,6 +10,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 
+// Initialize Express app
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -34,25 +35,12 @@ const io = new Server(server, {
   }
 });
 
-// WebSocket logic
-io.on("connection", (socket) => {
-  console.log(`[SOCKET] User connected: ${socket.id}`);
+// Import and initialize socket service
+const socketService = require('./services/socketUtils');
+const { registerSocketHandlers } = require('./services/socketHandler');
+socketService.init(io); // 💥 Initialize once, after io is created
+registerSocketHandlers(io); // Register your socket events
 
-  socket.on("join", (roomId) => {
-    socket.join(roomId);
-    console.log(`[SOCKET] ${socket.id} joined room ${roomId}`);
-  });
-
-  socket.on("send_message", (data) => {
-    // Expected: { roomId, sender, text, timestamp }
-    io.to(data.roomId).emit("receive_message", data);
-    console.log(`[SOCKET] Message sent to room ${data.roomId}: ${data.text}`);
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`[SOCKET] User disconnected: ${socket.id}`);
-  });
-});
 
 // Start both HTTP and WebSocket servers
 const PORT = process.env.PORT || 3000;

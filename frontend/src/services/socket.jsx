@@ -1,5 +1,11 @@
 // src/socket.js
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3000"); // Same port as your backend
+// Same port as your backend
+const socket = io("http://localhost:3000",
+    {
+        autoConnect: false // <- this is key
+    }
+); 
+
 export default socket;

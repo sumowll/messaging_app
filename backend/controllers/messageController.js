@@ -1,4 +1,7 @@
 const { createMessage, fetchMessages, countUnread, markMessagesAsReadInDB } = require("../models/messageModel");
+const { emitToRoom, emitToUserNotifications, emitUnreadCounts } = require('../services/socketUtils');
+const { sendMessageAndNotify } = require('../services/messageService');
+
 
 const sendMessage = async (req, res) => {
   const { to, text } = req.body;
@@ -9,7 +12,7 @@ const sendMessage = async (req, res) => {
   }
 
   try {
-    const result = await createMessage({ from, to, text });
+    const result = await sendMessageAndNotify({ from, to, text });
     res.status(201).json(result);
   } catch (err) {
     console.error("Send message error:", err);
@@ -43,6 +46,7 @@ const getCountUnread = async (req, res) => {
 
   try {
     const unreadCount = await countUnread(userEmail);
+    emitUnreadCounts(userEmail, unreadCount); // Emit to socket for real-time updates
     res.json(unreadCount); // ✅ returns the full object
 
   } catch (err) {
@@ -52,6 +56,7 @@ const getCountUnread = async (req, res) => {
 };
 
 const markMessagesAsRead = async (req, res) => {
+  console.log(`[DEBUG] markMessagesAsRead controller hit for ${req.body.from} → ${req.body.to}`);
   const { from, to } = req.body;
   if (!from || !to) {
     return res.status(400).json({ error: "Missing 'from' or 'to'" });

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { getAllUsers, sendFriendRequest, getContacts, getUnreadCounts } from "@api";
 import "../styles/FriendSearch.css"; // Assuming you have some styles for this component
+import socket from "../services/socket";
 
 
 export default function FriendSearch({
@@ -48,7 +49,12 @@ export default function FriendSearch({
   // This ensures that when switching from "add" to "chat", the search input is cleared
   useEffect(() => {
     setSearchTerm("");
-  }, [mode]);
+  }, [mode]); 
+
+  // socket.on("unreadCounts", (unreadCounts) => {
+  //   setUnreadCounts(unreadCounts);
+  // });
+
 
   return (
     <div className="friend-search-section">
@@ -82,7 +88,7 @@ export default function FriendSearch({
               </>
               ) : (
                     <div key={friend.email}>
-                      <a href="#" onClick={() => onChatStart(friend)} className="contact-link">
+                      <a href="#" onClick={() => onChatStart(loggedInEmail, friend)} className="contact-link">
                         {friend.name}
                       </a>
 

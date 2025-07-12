@@ -3,11 +3,31 @@ import AuthForm from "@components/AuthForm";
 import FriendSearch from "@components/FriendSearch";
 import ChatBox from "@components/ChatBox";
 import "./App.css";
-import { getContacts, getUnreadCounts } from "@api";
+import { getContacts, getUnreadCounts, markMessagesAsRead } from "@api";
+import socket from "./services/socket";
 
 
 function App() {
-  // console.log("APP MOUNTED");
+  console.log("APP MOUNTED");
+  useEffect(() => {
+  socket.connect();
+
+  // socket.on('connect', () => {
+  //   console.log('✅ connect fired', socket.id);
+  // });
+
+  socket.on('connection', () => {
+    console.log('⚠️ connection fired — unexpected unless manually emitted');
+  });
+
+  return () => {
+    socket.off('connect');
+    socket.off('connection');
+    socket.disconnect();
+  };
+}, []);
+
+
   const [authMode, setAuthMode] = useState(null);
   const [loggedInEmail, setLoggedInEmail] = useState(null);
   const [loggedInName, setLoggedInName] = useState(null);
@@ -15,7 +35,7 @@ function App() {
   const [friendSearchMode, setFriendSearchMode] = useState("chat"); // or "add"
   const [contacts, setContacts] = useState([]);
 
-
+// ==================== Function to handle user login and logout
   const handleLogin = (email, name) => {
     setLoggedInEmail(email);
     setLoggedInName(name || email);
@@ -23,13 +43,6 @@ function App() {
     setActiveChat({ name, email }); // Set active chat to logged-in user
     console.log("User logged in:", email, name);
   };
-
-  useEffect(() => {
-  if (loggedInEmail) {
-    fetchUnreadCounts();
-  }
-}, [loggedInEmail]);
-
 
   const handleLogout = () => {
     setLoggedInEmail(null);
@@ -56,22 +69,51 @@ function App() {
   const refreshContacts = () => setContactsVersion(v => v + 1);
   
   // ==================== Function to fetch unread counts for each contact
-  const [unreadCounts, setUnreadCounts] = useState({}); // { email1: count1, email2: count2, ... }
   const fetchUnreadCounts = async () => {
     if (!loggedInEmail) return; // Don't fetch if not logged in
     try {
-      const res = await getUnreadCounts(loggedInEmail);
+      const res = await getUnreadCounts(loggedInEmail); // assume returns { email1: count, ... }
       console.log("Fetched unread counts:", res);
-
-      // const data = await res.json();
-      setUnreadCounts(res); // e.g., { "alice@example.com": 2, ... }
+      setUnreadCounts(res);
     } catch (err) {
       console.error("Failed to fetch unread counts:", err);
     }
-  }
+  };
+  
+  const [unreadCounts, setUnreadCounts] = useState({});
+
+  useEffect(() => {
+    if (!loggedInEmail) return;
+
+    socket.emit("join_notifications", { userId: loggedInEmail });
+
+    fetchUnreadCounts();
+
+    const handleNewUnread = ({ from }) => {
+      if (!from) return;
+      setUnreadCounts((prev) => ({
+        ...prev,
+        [from]: (prev[from] || 0) + 1,
+      }));
+    };
+
+
+    const handleUnreadCounts = (counts) => {
+      setUnreadCounts(counts); // full refresh
+    };
+
+    socket.on("new_unread", handleNewUnread);
+    socket.on("unreadCounts", handleUnreadCounts);
+
+    return () => {
+      socket.off("new_unread", handleNewUnread);
+      socket.off("unreadCounts", handleUnreadCounts);
+    };
+  }, [loggedInEmail]);
+
 
   // ==================== Function to handle starting a chat
-  const onChatStart = (friend) => {
+  const onChatStart = (loggedInEmail, friend) => {
     console.log("Friend object passed to onChatStart:", friend);
 
     setActiveChat(friend); // Use friend if available, otherwise use current user
@@ -80,11 +122,15 @@ function App() {
       ...prev,
       [friend.email]: 0, // ✅ safely override only this contact's count
     }));
+    console.log("loggedInEmail:", loggedInEmail);
+
+    markMessagesAsRead(friend.email, loggedInEmail)
   };
 
 // ============================ Logic to handle initial login state
   if (!loggedInEmail) {
     return (
+      console.log("Rendering auth form"),
       <div className="auth-container">
         {!authMode ? (
           <>
@@ -135,6 +181,7 @@ function App() {
               loggedInEmail={loggedInEmail}
               friendEmail={activeChat?.email || ""}
               friendName={activeChat?.name || activeChat?.email || "Friend"}
+              setUnreadCounts={setUnreadCounts}
             />
 
           ) : (
