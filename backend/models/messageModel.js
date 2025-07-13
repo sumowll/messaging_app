@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 // const { TransactWriteItemsCommand } = require("@aws-sdk/client-dynamodb");
-const { QueryCommand, PutCommand, DynamoDBDocumentClient, TransactWriteCommand} = require("@aws-sdk/lib-dynamodb");
+const { QueryCommand, PutCommand, DynamoDBDocumentClient, TransactWriteCommand, UpdateCommand} = require("@aws-sdk/lib-dynamodb");
 const ddb = require("../config/db");
 const { TABLES } = require("../config/constants");
 const TABLE_NAME = TABLES.MESSAGES;
@@ -130,27 +130,38 @@ const markMessagesAsReadInDB = async (from, to) => {
 
   if (messages.length === 0) return 0;
 
-  const updates = messages.map((msg) => ({
-    Update: {
-      TableName: TABLE_NAME,
-      Key: {
-        conversation_id: msg.conversation_id,
-        timestamp: msg.timestamp
-      },
-      UpdateExpression: 'SET #read = :read',
-      ExpressionAttributeNames: { '#read': 'read' },
-      ExpressionAttributeValues: { ':read': 1 }  // ✅ Mark as read
+  let updatedCount = 0;
+
+  for (const msg of messages) {
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          conversation_id: msg.conversation_id,
+          timestamp: msg.timestamp
+        },
+        UpdateExpression: 'SET #read = :read',
+        ConditionExpression: '#read = :expected', // Only update if currently unread
+        ExpressionAttributeNames: { '#read': 'read' },
+        ExpressionAttributeValues: {
+          ':read': 1,
+          ':expected': 0
+        }
+      }));
+      updatedCount++;
+    } catch (err) {
+      if (err.name === 'ConditionalCheckFailedException') {
+        // Already read — safe to ignore
+      } else {
+        console.error(`[ERROR] Failed to mark message as read:`, err);
+        throw err; // Unexpected error — rethrow
+      }
     }
-  }));
-  console.log(`[DEBUG] Preparing to mark ${updates.length} messages as read for conversation ${conversationId}`);
+  }
 
-  // DynamoDB max 25 operations per transaction
-  await docClient.send(new TransactWriteCommand({
-    TransactItems: updates.slice(0, 25)
-  }));
+  console.log(`✅ Marked ${updatedCount} messages as read for conversation ${conversationId}`);
+  return updatedCount;
 
-  console.log(`✅ Marked ${updates.length} messages as read for conversation ${conversationId}`);
-  return updates.length;
 };
 
 
