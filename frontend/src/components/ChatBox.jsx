@@ -4,6 +4,7 @@ import socket from "../services/socket";
 import "../styles/ChatBox.css";
 
 function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
+  
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -15,12 +16,7 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
   return [email1, email2].sort().join("-");
   } 
 
-  useEffect(() => {
-    loggedInEmailRef.current = loggedInEmail;
-    friendEmailRef.current = friendEmail;
-  }, [loggedInEmail, friendEmail]);
-
-  const loadMessages = async () => {
+  const loadMessages = async (loggedInEmail, friendEmail) => {
     try {
       const msgs = await getMessages(loggedInEmail, friendEmail);
       setMessages(Array.isArray(msgs) ? msgs : []);
@@ -45,11 +41,6 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
       // timestamp: Date.now(), // timestamp will be set by the backend
     };
 
-    setMessages((prev) => [
-      ...prev,
-      { ...newMessage, from: loggedInEmail, message_id: `tmp-${Date.now()}` },
-    ]);
-
     socket.emit("send_message", newMessage);
     // await sendMessage(loggedInEmail, friendEmail, text); // not using API call anymore, handled by socket
     setText("");
@@ -62,6 +53,12 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
     }
   };
   
+// =========================================================================
+  useEffect(() => {
+    loggedInEmailRef.current = loggedInEmail;
+    friendEmailRef.current = friendEmail;
+  }, [loggedInEmail, friendEmail]);
+
   useEffect(() => {
     const handleReceive = (message) => {
       const currentRoom = getRoomId(loggedInEmailRef.current, friendEmailRef.current);
@@ -91,9 +88,8 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
     if (!friendEmail) return;
     const roomId = getRoomId(loggedInEmail, friendEmail);
     socket.emit("join", roomId);
-    loadMessages();
+    loadMessages(loggedInEmail, friendEmail);
 
-    // socket.emit("mark_as_read", { roomId, userEmail: loggedInEmail });
 
     setUnreadCounts((prev) => {
       const updated = { ...prev };
@@ -108,9 +104,10 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
     textarea.style.height = "auto";
     textarea.style.height = textarea.scrollHeight + "px";
   }
-}, [text]);
-  console.log(messages.map(msg => msg.message_id));
+  }, [text]);
+  
 
+  // =========================================================================
 
   return (
     <div className="chatbox-container">
@@ -140,13 +137,12 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
                 </div>
               </div>
             </div>
-
-
           );
         })}
 
         <div ref={messagesEndRef} />
       </div>
+      
       <div className="chatbox-input-area">
         <input
           className="chatbox-textarea"

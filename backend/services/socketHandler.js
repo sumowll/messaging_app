@@ -1,4 +1,4 @@
-import { sendMessageAndNotify, markMessagesAsRead } from './messageService.js';
+import { sendMessageAndNotify } from './messageService.js';
 
 export function registerSocketHandlers(io) {
   io.on('connection', (socket) => {
@@ -26,12 +26,6 @@ export function registerSocketHandlers(io) {
       } catch (err) {
         console.error("Socket message failed:", err);
       }
-    });
-
-    socket.on('mark_as_read', async ({ from, to }) => {
-      await markMessagesAsRead(from, to);
-    
-      console.log(`[SOCKET] ✅ Marked as read for ${to} from ${from}`);
     });
 
     socket.on('disconnect', () => {
