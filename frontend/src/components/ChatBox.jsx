@@ -125,7 +125,7 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
               key={msg.message_id}
               className={`chatbox-message ${isSender ? "sent" : "received"}`}
             >
-              {!isSender && <div className="chatbox-sender-name">{friendName}</div>}
+              <div className="chatbox-sender-name">{senderLabel}</div>
 
               <div className="chatbox-bubble">
                 <div className="chatbox-text">{msg.text}</div>
