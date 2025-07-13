@@ -109,6 +109,7 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
     textarea.style.height = textarea.scrollHeight + "px";
   }
 }, [text]);
+  console.log(messages.map(msg => msg.message_id));
 
 
   return (

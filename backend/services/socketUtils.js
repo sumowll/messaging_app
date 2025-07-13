@@ -15,6 +15,7 @@ function emitUnreadCounts(userEmail, counts) {
 function emitToRoom(room, event, payload) {
   if (!ioInstance) return;
   ioInstance.to(room).emit(event, payload);
+  console.log(`📡 Emitting to room: ${room} — Event: ${event}`, payload);
   console.log(`📡 Emitting to room: ${room} — Clients:`, ioInstance.sockets.adapter.rooms.get(room));
 }
 

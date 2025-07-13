@@ -14,7 +14,7 @@ export function registerSocketHandlers(io) {
 
     socket.on('join', (roomId) => {
       socket.join(`chat:${roomId}`);
-      console.log(`💬 Joined chat room ${roomId}`);
+      console.log(`💬 ${userEmail} Joined chat room ${roomId}`);
     });
 
     socket.on('send_message', async (msg) => {
@@ -22,7 +22,7 @@ export function registerSocketHandlers(io) {
 
       try {
         await sendMessageAndNotify({ from, to, text, io });
-        console.log(`📤 Message from ${from} to ${to} handled via service`);
+        console.log(`📤 Message from ${from} to ${to} handled via service is --  ${text}`);
       } catch (err) {
         console.error("Socket message failed:", err);
       }
