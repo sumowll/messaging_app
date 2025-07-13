@@ -4,29 +4,11 @@ import FriendSearch from "@components/FriendSearch";
 import ChatBox from "@components/ChatBox";
 import "./App.css";
 import { getContacts, getUnreadCounts, markMessagesAsRead } from "@api";
-import socket from "./services/socket";
+import socket, { connectSocket } from './services/socket.jsx';
 
 
 function App() {
   console.log("APP MOUNTED");
-  useEffect(() => {
-  socket.connect();
-
-  // socket.on('connect', () => {
-  //   console.log('✅ connect fired', socket.id);
-  // });
-
-  socket.on('connection', () => {
-    console.log('⚠️ connection fired — unexpected unless manually emitted');
-  });
-
-  return () => {
-    socket.off('connect');
-    socket.off('connection');
-    socket.disconnect();
-  };
-}, []);
-
 
   const [authMode, setAuthMode] = useState(null);
   const [loggedInEmail, setLoggedInEmail] = useState(null);
@@ -34,6 +16,7 @@ function App() {
   const [activeChat, setActiveChat] = useState({ name: null, email: "" });
   const [friendSearchMode, setFriendSearchMode] = useState("chat"); // or "add"
   const [contacts, setContacts] = useState([]);
+
 
 // ==================== Function to handle user login and logout
   const handleLogin = (email, name) => {
@@ -54,6 +37,19 @@ function App() {
     setContactsVersion(0); // Reset contacts version to trigger re-fetching on next login
     console.log("User logged out");
   };
+
+  // ==================== Connect socket when user logs in
+  useEffect(() => {
+      if (loggedInEmail) {
+        connectSocket(loggedInEmail);
+        console.log("Socket connected for user:", loggedInEmail);
+
+      }
+      return () => {socket.disconnect()
+        console.log("Socket disconnected");
+      };
+
+    }, [loggedInEmail]); // ✅ connect only when loggedInEmail changes
 
   // ============= Use a version counter to trigger re-fetching contacts
   const [contactsVersion, setContactsVersion] = useState(0);

@@ -72,9 +72,9 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
           (m) =>
             m.timestamp === message.timestamp &&
             m.text === message.text &&
-            m.from === message.sender
+            m.from === message.from
         );
-        return exists ? prev : [...prev, { ...message, from: message.sender }];
+        return exists ? prev : [...prev, { ...message, from: message.from }];
       });
     };
 
@@ -127,7 +127,7 @@ function ChatBox({ loggedInEmail, friendEmail, friendName, setUnreadCounts }) {
               key={msg.message_id}
               className={`chatbox-message ${isSender ? "sent" : "received"}`}
             >
-              {!isSender && <div className="chatbox-sender-name">{msg.sender_name}</div>}
+              {!isSender && <div className="chatbox-sender-name">{friendName}</div>}
 
               <div className="chatbox-bubble">
                 <div className="chatbox-text">{msg.text}</div>

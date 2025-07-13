@@ -88,8 +88,8 @@ const countUnread = async (userEmail) => {
     const counts = {};
 
     for (const msg of data.Items || []) {
-      const sender = msg.from;
-      counts[sender] = (counts[sender] || 0) + 1;
+      const from = msg.from;
+      counts[from] = (counts[from] || 0) + 1;
     }
 
     return counts; // ✅ returns: { "alice@example.com": 2, ... }
