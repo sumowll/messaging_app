@@ -10,23 +10,23 @@ function getConversationId(a, b) {
   return [a, b].sort().join("|");
 }
 
-const createMessage = async ({ from, to, text }) => {
+const createMessage = async ({ from, to, text, read = 0 }) => {
   const timestamp = new Date().toISOString();
   const message_id = uuidv4();
   const conversation_id = getConversationId(from, to);
 
-  // Create the item to be stored in DynamoDB and match the schema and types
   if (!from || !to || !text) {
     throw new Error("Missing required fields: from, to, text");
   }
+
   const item = {
-    conversation_id,            // string
-    message_id,                 // string (UUID)
-    from,                       // string
-    to,                         // string
-    text,                       // string
-    timestamp,                  // string (ISO timestamp)
-    read: 0 // equivalent to false/unread
+    conversation_id,
+    message_id,
+    from,
+    to,
+    text,
+    timestamp,
+    read, // ✅ Use dynamic read value
   };
 
   try {
