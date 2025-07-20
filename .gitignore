@@ -1,3 +1,7 @@
+backend/credentials/
+
+
+
 # Logs
 logs
 *.log

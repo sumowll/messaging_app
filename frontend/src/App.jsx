@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AuthForm from "@components/AuthForm";
 import FriendSearch from "@components/FriendSearch";
 import ChatBox from "@components/ChatBox";
+import AIChatBox from "@components/AIChatBox";
 import "./App.css";
 import { getContacts, getUnreadCounts, markMessagesAsRead } from "@api";
 import socket, { connectSocket } from './services/socket.jsx';
@@ -171,19 +172,31 @@ function App() {
         </div>
 
         <div className="chat-area">
+          <div  className="chatbox=left">
           
-          {activeChat?.email ? (
-            <ChatBox
-              loggedInEmail={loggedInEmail}
-              friendEmail={activeChat?.email || ""}
-              friendName={activeChat?.name || activeChat?.email || "Friend"}
-              setUnreadCounts={setUnreadCounts}
-            />
+            {activeChat?.email ? (
+              <ChatBox
+                loggedInEmail={loggedInEmail}
+                friendEmail={activeChat?.email || ""}
+                friendName={activeChat?.name || activeChat?.email || "Friend"}
+                setUnreadCounts={setUnreadCounts}
+              />
 
-          ) : (
-            <div className="placeholder-text">Select a contact to start chatting.</div>
-          )}
+            ) : (
+              <div className="placeholder-text">Select a contact to start chatting.</div>
+            )}
+
+          </div>
+
+          <div className="chatbox-right">
+
+            <h2>AI Assistant</h2>
+            {/* <AIChatBox loggedInEmail={loggedInEmail, email} /> */}
+          
+          </div>  
+
         </div>
+
       </div>
     );
 }
