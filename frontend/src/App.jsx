@@ -172,7 +172,7 @@ function App() {
         </div>
 
         <div className="chat-area">
-          <div  className="chatbox=left">
+          <div  className="chatbox-left">
           
             {activeChat?.email ? (
               <ChatBox
@@ -189,10 +189,12 @@ function App() {
           </div>
 
           <div className="chatbox-right">
-
-            <h2>AI Assistant</h2>
-            {/* <AIChatBox loggedInEmail={loggedInEmail, email} /> */}
-          
+            
+              <AIChatBox
+                loggedInEmail={loggedInEmail}
+                friendEmail={activeChat?.email}
+                friendName={activeChat?.name}
+                />
           </div>  
 
         </div>

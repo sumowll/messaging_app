@@ -41,6 +41,17 @@ const { registerSocketHandlers } = require('./services/socketHandler');
 socketService.init(io); // 💥 Initialize once, after io is created
 registerSocketHandlers(io); // Register your socket events
 
+// Import and initialize agentic controller
+const { getAssistantResponse } = require('./agents/agenticController');
+app.post("/api/agents/chat", async (req, res, next) => {
+  try {
+    const userText = req.body.message;
+    const reply = await getAssistantResponse(userText);
+    res.json({ reply });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Start both HTTP and WebSocket servers
 const PORT = process.env.PORT || 3000;

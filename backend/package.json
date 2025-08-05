@@ -13,6 +13,7 @@
     "@aws-sdk/client-dynamodb": "^3.835.0",
     "@aws-sdk/lib-dynamodb": "^3.835.0",
     "@aws-sdk/util-dynamodb": "^3.839.0",
+    "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.0",

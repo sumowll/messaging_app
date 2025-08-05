@@ -23,12 +23,7 @@ export function registerSocketHandlers(io) {
       try {
         await sendMessageAndNotify({ from, to, text, io });
         console.log(`📤 Message from ${from} to ${to} handled via service is --  ${text}`);
-
-        await axios.post('http://localhost:5050/agent/dispatch', {
-          message: data.text,
-          user: data.from,
-          conversation_id: data.conversation_id
-        });
+      
       } catch (err) {
         console.error("Socket message failed:", err);
       }

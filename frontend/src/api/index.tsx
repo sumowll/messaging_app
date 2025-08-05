@@ -78,6 +78,22 @@ export async function markMessagesAsRead(from: string, to: string): Promise<any>
   console.log("Marked as read:", result);
 }
 
+export async function agenticCall (query: string): Promise<any> {
+  const response = await fetch(`${API}/agents/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: query })
+  });
+
+  if (!response.ok) {
+    console.error("Failed to call agentic API");
+    throw new Error("Agentic API call failed");
+  }
+  const result = await response.json();
+  console.log("Agentic API response:", result);
+  return result.reply;
+}
+
 
 
 

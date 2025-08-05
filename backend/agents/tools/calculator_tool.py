@@ -6,7 +6,7 @@ app = FastAPI()
 class CalculatorRequest(BaseModel):
     expression: str
 
-@app.post("/agent/calculator_tool")
+@app.post("/tools/calculator_tool")
 def handle_calculation(req: CalculatorRequest):
     try:
         result = eval(req.expression, {"__builtins__": {}})
