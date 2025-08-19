@@ -63,40 +63,47 @@ def nlp_to_calendar_payload(text: str) -> dict:
 
 
 if __name__ == "__main__":
-    from pydantic import BaseModel, Field
+    import asyncio
+from agno.agent import Agent
+from agno.models.ollama import chat, tools
+from agno.tools.reasoning import ReasoningTools
+from agno.tools.yfinance import YFinanceTools
+from agno.tools.sql import SQLTools
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-class Event(BaseModel):
-    event_title: str = Field(alias="event title")
-    start_time: str = Field(alias="start time")
-    end_time: str = Field(alias="end time")
-from langchain_core.output_parsers import PydanticOutputParser
-parser = PydanticOutputParser(pydantic_object=Event)
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1")
+# reasoning_agent = Agent(
+#     model=chat.Ollama(id=OLLAMA_MODEL),
+#     tools=[
+#         ReasoningTools(add_instructions=True),
+#         YFinanceTools(stock_price=True, analyst_recommendations=True, company_info=True, company_news=True, historical_prices=True),
+#         # SQLTools(list_tables=True, describe_table=True, run_sql_query=True)
+#     ],
+#     instructions="Answer concisely. If possible, return compact JSON only.",
+#     markdown=True,
+# )
+# import inspect
+# print(inspect.signature(ReasoningTools().think))
 
-from langchain_core.prompts import PromptTemplate
-prompt = PromptTemplate(
-    template="Extract event details from the text.\n{format_instructions}\nText: {text}\n",
-    input_variables=["text"],
-    partial_variables={"format_instructions": parser.get_format_instructions()},
+
+from logging_model import LoggingOllama
+from agno.models.ollama import chat
+
+wrapped_model = LoggingOllama(chat.Ollama(id="deepseek-r1:latest"))
+
+reasoning_agent = Agent(
+    model=wrapped_model,
+    tools=[
+        ReasoningTools(add_instructions=True),
+        YFinanceTools(stock_price=True, analyst_recommendations=True, company_info=True, company_news=True, historical_prices=True)
+        ],
+    instructions="Answer concisely. If possible, return compact JSON only.",
+    markdown=True,
 )
-from langchain_ollama import OllamaLLM
-llm = OllamaLLM(model="deepseek-r1:latest")
 
-input_text = "I have a doctor appointment tomorrow at 9"
-prompt_text = prompt.format(text=input_text)
-output = llm.invoke(prompt_text)
-import re
-
-raw_output = output  # the full raw string from the model
-
-# Remove <think>...</think> blocks or standalone <think> tags
-clean_output = re.sub(r"<think>.*?</think>", "", raw_output, flags=re.DOTALL)
-clean_output = clean_output.replace("<think>", "").replace("</think>", "").strip()
-
-# Now pass clean_output to your JSON parser
-event = parser.invoke(clean_output)
-
-event = parser.invoke(output)
-data = event.model_dump(by_alias=True)
-print(data)
-
+reasoning_agent.run(
+    "What is the current stock price of Apple? What is the latest news about it?",
+    stream=True)
 

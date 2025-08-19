@@ -1,0 +1,17 @@
+microservices:
+  - name: user_service
+    port: 5000
+    endpoints: http://localhost:5000/api/v1
+    description: Handles user authentication and profile management
+  - name: message_service
+    port: 5001
+    endpoints: http://localhost:5001/api/v1
+    description: Manages message sending and receiving
+  - name: notification_service
+    port: 5002
+    endpoints: http://localhost:5002/api/v1
+    description: Sends notifications to users about new messages
+  - name: chat_service
+    port: 5003
+    endpoints: http://localhost:5003/api/v1
+    description: Manages chat rooms and group chats

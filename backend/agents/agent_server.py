@@ -56,7 +56,7 @@ def _remote_calendar(query: str) -> str:
 calendar_tool = StructuredTool.from_function(
     name="calendar_tool",
     description="Create a Google Calendar event from text like "
-                "'Lunch with Alice next Wed 12–1'.",
+                "'Lunch with Alice next Wed 12 to1'.",
     args_schema=CalArgs,
     func=_remote_calendar,
     return_direct=True,
@@ -67,41 +67,53 @@ TOOLS = [calculator_tool, calendar_tool]
 # ────────────────────────────────
 # 2)  Choose an LLM
 # ────────────────────────────────
-llm = ChatOllama(model=os.getenv("OLLAMA_MODEL", "deepseek-r1:latest"))
+react_llm = ChatOllama(model=os.getenv("OLLAMA_MODEL", "deepseek-r1:latest"))
 
 # ────────────────────────────────
 # 3)  Build & test the graph
 # ────────────────────────────────
-react_agent = create_react_agent(llm, TOOLS)
+react_agent = create_react_agent(react_llm, TOOLS)
 # Create FastAPI app
 app = FastAPI()
 # ────────────────────────────────
 class ChatRequest(BaseModel):
     user_msg: str
 
+from langchain_core.messages import AIMessage
+
+# Create a conversational LLM without tools for fallback
+conversational_llm = ChatOllama(model=os.getenv("OLLAMA_MODEL", "deepseek-r1:latest"))
+
 @app.post("/agents/chat")
 async def chat_with_agent(req: ChatRequest = Body(...)):
-    payload = {"messages": [{"role": "user", "content": req.user_msg}]}
+    sent_anything = False
+    tool_called = False
 
     async def stream_agent_response():
-        sent_anything = False
+        nonlocal sent_anything, tool_called
 
-        async for chunk, _ in react_agent.astream(payload, stream_mode="messages"):
-            # chunk is usually an AIMessage / ToolMessage / str
+        # 1️⃣ Try normal REACT streaming (calls tools if needed)
+        async for chunk, _ in react_agent.astream(
+            {"messages": [{"role": "user", "content": req.user_msg}]},
+            stream_mode="messages",
+        ):
             text = getattr(chunk, "content", "") or str(chunk)
             if text.strip():
                 sent_anything = True
                 yield text + "\n===========\n"
 
-        # If the loop never yielded, the agent skipped tools and went straight
-        # to its final answer.  Do a one-shot call and return that text.
-        if not sent_anything:
-            final_msg = await react_agent.invoke(payload)
-            # final_msg is an AIMessage; its .content holds the answer text.
-            yield final_msg.content + "\n"
+            # Check if the chunk contains tool calls (depends on your agent's message structure)
+            # For example, if chunk is an AIMessage and has tool_calls attribute:
+            if hasattr(chunk, "tool_calls") and chunk.tool_calls:
+                tool_called = True
 
-    return StreamingResponse(stream_agent_response(),
-                             media_type="text/plain")
+        # 2️⃣ If no tool was called, fallback to conversational LLM
+        if not tool_called:
+            async for token in conversational_llm.astream(req.user_msg):
+                yield token
+            yield "\n"  # end-of-stream sentinel
+
+    return StreamingResponse(stream_agent_response(), media_type="text/plain")
 
 
 

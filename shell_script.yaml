@@ -1,0 +1,12 @@
+command:
+  - sh
+  - -c
+  - |
+    #!/bin/sh
+    http () {
+      local path="$1"
+      set -- -XGET -s --fail
+      # something like curl
+      curl "$@" "http://localhost:5000/api/v1/$path"
+    }
+    http "users"
